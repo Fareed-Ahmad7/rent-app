@@ -52,12 +52,13 @@ class MyApp extends StatelessWidget {
       title: 'Welcome to Flutter',
       home: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: const Text(
             'Visanka Complex',
             style: TextStyle(
                 fontFamily: 'Nunito',
                 fontWeight: FontWeight.bold,
-                fontSize: 32),
+                fontSize: 28),
           ),
         ),
         backgroundColor: Colors.white,

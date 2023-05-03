@@ -6,6 +6,7 @@ class Payment {
   final String PaymentMethod;
   final String PaidDate;
   final String TransactionID;
+  final String Sign;
 
   Payment({
     required this.BillDate,
@@ -15,6 +16,7 @@ class Payment {
     required this.PaymentMethod,
     required this.PaidDate,
     required this.TransactionID,
+    required this.Sign,
   });
 
   Map<String, dynamic> toJson() => {
@@ -25,6 +27,7 @@ class Payment {
         'PaymentMethod': PaymentMethod,
         'PaidDate': PaidDate,
         'TransactionID': TransactionID,
+        'Signature': Sign,
       };
 
   static Payment fromJson(Map<String, dynamic> json) => Payment(
@@ -35,5 +38,6 @@ class Payment {
         PaymentMethod: json['PaymentMethod'],
         PaidDate: json['PaidDate'],
         TransactionID: json['TransactionID'],
+        Sign: json['Sign'],
       );
 }

@@ -5,12 +5,18 @@ import 'package:rent_app/api/pdf_invoice_api.dart';
 import 'package:rent_app/model/invoice.dart';
 import 'package:rent_app/model/payment_model.dart';
 import 'package:rent_app/model/shop_model.dart';
+import 'package:rent_app/pages/signature.dart';
 
-class ShopDetails extends StatelessWidget {
+class ShopDetails extends StatefulWidget {
   ShopDetails({Key? key, required this.shop_details}) : super(key: key);
 
   final Shop shop_details;
 
+  @override
+  State<ShopDetails> createState() => _ShopDetailsState();
+}
+
+class _ShopDetailsState extends State<ShopDetails> {
   final List<Payment> payment_details = [];
 
   final headerStyle = const TextStyle(
@@ -22,7 +28,7 @@ class ShopDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     Stream<List<Payment>> readPaymentDetails() => FirebaseFirestore.instance
         .collection('visanka_complex')
-        .doc(shop_details.ShopName)
+        .doc(widget.shop_details.ShopName)
         .collection('PaymentHistory')
         .snapshots()
         .map((snapshot) =>
@@ -35,8 +41,9 @@ class ShopDetails extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
-          shop_details.ShopName,
+          widget.shop_details.ShopName,
           style: const TextStyle(
               fontFamily: 'Nunito', fontWeight: FontWeight.bold, fontSize: 28),
         ),
@@ -44,23 +51,7 @@ class ShopDetails extends StatelessWidget {
           Padding(
               padding: const EdgeInsets.only(right: 20.0),
               child: GestureDetector(
-                onTap: () async {
-                  // print(dataset);
-                  final invoice = Invoice(
-                      shop: Shop(
-                          ShopName: shop_details.ShopName,
-                          TenantName: shop_details.TenantName,
-                          TenantAddress: shop_details.TenantAddress,
-                          PhoneNumber: shop_details.PhoneNumber,
-                          TotalRent: shop_details.TotalRent,
-                          RentPaid: shop_details.RentPaid,
-                          RentPerMonth: shop_details.RentPerMonth,
-                          RentBalance: shop_details.RentBalance),
-                      payment: payment_details);
-
-                  final pdfFile = await PdfInvoiceApi.generate(invoice);
-                  PdfApi.openFile(pdfFile);
-                },
+                onTap: generatePdf,
                 child: const Icon(
                   Icons.picture_as_pdf,
                   size: 26.0,
@@ -93,6 +84,23 @@ class ShopDetails extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void generatePdf() async {
+    final invoice = Invoice(
+        shop: Shop(
+            ShopName: widget.shop_details.ShopName,
+            TenantName: widget.shop_details.TenantName,
+            TenantAddress: widget.shop_details.TenantAddress,
+            PhoneNumber: widget.shop_details.PhoneNumber,
+            TotalRent: widget.shop_details.TotalRent,
+            RentPaid: widget.shop_details.RentPaid,
+            RentPerMonth: widget.shop_details.RentPerMonth,
+            RentBalance: widget.shop_details.RentBalance),
+        payment: payment_details);
+
+    final pdfFile = await PdfInvoiceApi.generate(invoice);
+    PdfApi.openFile(pdfFile);
   }
 
   Container paymentHistoryHeader() {
@@ -142,7 +150,7 @@ class ShopDetails extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text(shop_details.TenantName, style: textStyle),
+                        Text(widget.shop_details.TenantName, style: textStyle),
                       ],
                     ),
                   ],
@@ -159,7 +167,7 @@ class ShopDetails extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text((shop_details.PhoneNumber).toString(),
+                        Text((widget.shop_details.PhoneNumber).toString(),
                             style: textStyle),
                       ],
                     ),
@@ -177,7 +185,7 @@ class ShopDetails extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text((shop_details.RentBalance).toString(),
+                        Text((widget.shop_details.RentBalance).toString(),
                             style: textStyle),
                       ],
                     ),
@@ -197,7 +205,8 @@ class ShopDetails extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text(shop_details.TenantAddress, style: textStyle),
+                        Text(widget.shop_details.TenantAddress,
+                            style: textStyle),
                       ],
                     ),
                   ],
@@ -214,7 +223,7 @@ class ShopDetails extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text((shop_details.TotalRent.toString()),
+                        Text((widget.shop_details.TotalRent.toString()),
                             style: textStyle),
                       ],
                     ),
@@ -232,7 +241,7 @@ class ShopDetails extends StatelessWidget {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text((shop_details.RentPaid).toString(),
+                        Text((widget.shop_details.RentPaid).toString(),
                             style: textStyle),
                       ],
                     ),
@@ -242,6 +251,28 @@ class ShopDetails extends StatelessWidget {
             )
           ],
         ));
+  }
+
+  loadSignature(sign, month) {
+    if (sign == '') {
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => SignaturePage(collection: widget.shop_details.ShopName, document: month,)));
+        },
+        child: const Text('Tap to add', style: TextStyle(color: Colors.blue)),
+      );
+    } else {
+      return Container(
+        width: 50.0,
+        height: 20.0,
+        decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        image:  DecorationImage(
+          fit: BoxFit.fill,
+          image: NetworkImage(sign),),
+      ));
+    }
   }
 
   Padding paymentsHistoryContainer(Payment payment) {
@@ -399,7 +430,7 @@ class ShopDetails extends StatelessWidget {
                               const SizedBox(
                                 height: 3,
                               ),
-                              Text('signature', style: textStyle),
+                              loadSignature(payment.Sign, payment.BillDate)
                             ],
                           ),
                         ],

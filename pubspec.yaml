@@ -43,6 +43,8 @@ dependencies:
   # open pdf document
   # open_file: ^3.3.1
   open_filex: ^4.3.2
+  signature: ^5.3.2
+  firebase_storage: ^11.1.1
 
 
 
