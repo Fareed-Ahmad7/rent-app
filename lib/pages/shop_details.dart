@@ -6,6 +6,7 @@ import 'package:rent_app/model/invoice.dart';
 import 'package:rent_app/model/payment_model.dart';
 import 'package:rent_app/model/shop_model.dart';
 import 'package:rent_app/pages/signature.dart';
+import 'package:calc/calc.dart';
 
 class ShopDetails extends StatefulWidget {
   ShopDetails({Key? key, required this.shop_details}) : super(key: key);
@@ -18,6 +19,7 @@ class ShopDetails extends StatefulWidget {
 
 class _ShopDetailsState extends State<ShopDetails> {
   final List<Payment> payment_details = [];
+  var lateFee=0;
 
   final headerStyle = const TextStyle(
       fontFamily: 'Nunito', fontWeight: FontWeight.bold, letterSpacing: 0.5);
@@ -33,6 +35,24 @@ class _ShopDetailsState extends State<ShopDetails> {
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Payment.fromJson(doc.data())).toList());
+
+    // calculate late fee
+    FirebaseFirestore.instance
+        .collection('visanka_complex')
+        .doc(widget.shop_details.ShopName)
+        .collection('PaymentHistory')
+        .where('AmountPaid', isEqualTo: 0)
+        .get()
+        .then(
+      (querySnapshot) {
+        print("Successfully completed");
+        for (var docSnapshot in querySnapshot.docs) {
+          setState(() {
+            lateFee = factorial(querySnapshot.docs.length)*1000;
+          });
+        }
+      },
+    );
 
     Widget buildPaymentsList(Payment payment) {
       payment_details.add(payment);
@@ -191,6 +211,24 @@ class _ShopDetailsState extends State<ShopDetails> {
                     ),
                   ],
                 ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('BILL PER MONTH', style: headerStyle),
+                        const SizedBox(
+                          height: 3,
+                        ),
+                        Text((widget.shop_details.RentPerMonth).toString(),
+                            style: textStyle),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
             Column(
@@ -247,6 +285,24 @@ class _ShopDetailsState extends State<ShopDetails> {
                     ),
                   ],
                 ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('LATE FEE', style: headerStyle),
+                        const SizedBox(
+                          height: 3,
+                        ),
+                        Text(lateFee.toString(),
+                            style: textStyle),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             )
           ],
@@ -257,21 +313,27 @@ class _ShopDetailsState extends State<ShopDetails> {
     if (sign == '') {
       return GestureDetector(
         onTap: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => SignaturePage(collection: widget.shop_details.ShopName, document: month,)));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => SignaturePage(
+                        collection: widget.shop_details.ShopName,
+                        document: month,
+                      )));
         },
         child: const Text('Tap to add', style: TextStyle(color: Colors.blue)),
       );
     } else {
       return Container(
-        width: 50.0,
-        height: 20.0,
-        decoration: BoxDecoration(
-        shape: BoxShape.rectangle,
-        image:  DecorationImage(
-          fit: BoxFit.fill,
-          image: NetworkImage(sign),),
-      ));
+          width: 50.0,
+          height: 20.0,
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            image: DecorationImage(
+              fit: BoxFit.fill,
+              image: NetworkImage(sign),
+            ),
+          ));
     }
   }
 
