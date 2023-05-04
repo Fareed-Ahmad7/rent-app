@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:rent_app/api/late_fee.dart';
 import 'package:rent_app/api/pdf_api.dart';
 import 'package:rent_app/api/pdf_invoice_api.dart';
 import 'package:rent_app/model/invoice.dart';
 import 'package:rent_app/model/payment_model.dart';
 import 'package:rent_app/model/shop_model.dart';
 import 'package:rent_app/pages/signature.dart';
-import 'package:calc/calc.dart';
 
 class ShopDetails extends StatefulWidget {
   ShopDetails({Key? key, required this.shop_details}) : super(key: key);
@@ -36,23 +36,6 @@ class _ShopDetailsState extends State<ShopDetails> {
         .map((snapshot) =>
             snapshot.docs.map((doc) => Payment.fromJson(doc.data())).toList());
 
-    // calculate late fee
-    FirebaseFirestore.instance
-        .collection('visanka_complex')
-        .doc(widget.shop_details.ShopName)
-        .collection('PaymentHistory')
-        .where('AmountPaid', isEqualTo: 0)
-        .get()
-        .then(
-      (querySnapshot) {
-        print("Successfully completed");
-        for (var docSnapshot in querySnapshot.docs) {
-          setState(() {
-            lateFee = factorial(querySnapshot.docs.length)*1000;
-          });
-        }
-      },
-    );
 
     Widget buildPaymentsList(Payment payment) {
       payment_details.add(payment);
@@ -297,8 +280,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                         const SizedBox(
                           height: 3,
                         ),
-                        Text(lateFee.toString(),
-                            style: textStyle),
+                       CalcLateFee(shopName: widget.shop_details.ShopName),
                       ],
                     ),
                   ],
